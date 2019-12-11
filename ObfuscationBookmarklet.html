@@ -77,6 +77,12 @@ window.addEventListener('load', function() {
     ].join("");
     document.querySelector("#bookmarkletdst").href = 
         "javascript:(function(){\n"+SRC+"\n})()";
+    function showhex() {
+        document.querySelector("#thex").textContent = 
+            tohex(document.querySelector("#samplet").textContent);
+    }
+    window.showhex = showhex;
+    showhex();
 });
   </script>
   <style type="text/css">
@@ -86,10 +92,15 @@ body {
 #srchex,#dsthex {
     font-family: monospace;
 }
+#thex {
+    white-space: pre-line;
+}
   </style>
  </head>
  <body>
   <h1>Text obfuscation bookmarklet</h1>
+  <h2>The bookmarklet</h2>
+  <p>You can bookmark this, using right-click and 'Bookmark this link' : <a id="bookmarkletdst" href="#">Obfuscate selected text</a> or drag-and-drop to the bookmarks toolbar</p>
   <h2>An example</h2>
   <table>
    <tr><td>BEFORE:</td><td id="src">The quick brown fox jumps over the lazy dog - this sentence contains all 26 english letters</td></tr>
@@ -97,9 +108,8 @@ body {
    <tr><td>BEFORE(hex):</td><td id="srchex"></td></tr>
    <tr><td>AFTER(hex):</td><td id="dsthex"></td></tr>
   </table>
-  <textarea>Lorem ipsum nic dolor sit amet</textarea>
-  <h2>The bookmarklet</h2>
-  <p>You can bookmark this, using right-click and 'Bookmark this link' : <a id="bookmarkletdst" href="#">Obfuscate selected text</a></p>
+  <textarea cols="80" rows="7" id="samplet" onchange="showhex()">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</textarea>
+  <pre id="thex"></pre>
   <h2>The characters scrambled</h2>
   <pre id="mappings">
     Codes = 33, 451 chars = !, ǃ
