@@ -3,11 +3,11 @@
 
 function interceptNewInputs() {
     const MARKER = "drnoparse-marker";
-    [].slice.call(document.querySelectorAll(`textarea:not([${MARKER}])`))
-    .forEach(textarea=>{
-        console.log("drnoparse hooked", textarea);
-        textarea.setAttribute(MARKER, true);
-        textarea.addEventListener('keydown', e=>keydown(e,textarea));
+    [].slice.call(document.querySelectorAll(`textarea:not([${MARKER}]) , input[type=text]:not([${MARKER}])`))
+    .forEach(e=>{
+        console.log("Extension drnoparse","hooked to", e);
+        e.setAttribute(MARKER, true);
+        e.addEventListener('keydown', event=>keydown(event,e));
     });
 }
 
@@ -20,11 +20,14 @@ function nomodifiers(e) {
 }
 
 const OPTIONS = {
-    enabled: true,
-}
+    enabled: false,
+    swap: true,
+    diatrics: true,
+};
 
 function keydown(event, textarea) {
     if(!OPTIONS.enabled) return;
+    // TODO when textarea is a text input
     if(event && event.key && event.key.length 
             && event.key.match(/^[\w]$/i)
             && nomodifiers(event)) {
@@ -227,13 +230,23 @@ function zalgoed(c) {
   )).join("");
 }
 
-browser.runtime.onMessage.addListener((message) => {
-    if (message.command === "drnoparse") {
-        if(message.action == "Disable") {
-            OPTIONS.enabled = false;
-        } else {
-            OPTIONS.enabled = true;
+browser.runtime.onMessage.addListener((message,sender,sendResponse) => {
+    if (message.command === "getdrnoparsestatus") {
+        sendResponse({ status:{...OPTIONS}, });
+    } else if (message.command === "drnoparse") {
+        console.log("Extension drnoparse", "switch message", message);
+        switch(message.action) {
+            case "Enabled":
+                OPTIONS.enabled = message.status;
+                break;
+            case "Swap chars":
+                OPTIONS.swap = message.status;
+                break;
+            case "Add accents":
+                OPTIONS.diatrics = message.status;
+                break;
         }
+        console.log("Extension drnoparse", "switched enabled", OPTIONS.enabled);
     }
 });
 

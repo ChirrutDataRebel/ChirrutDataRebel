@@ -1,23 +1,36 @@
 function optionclicked(e) {
-	const txt = e.target.textContent;
+    const input = e.target;
+	const txt = input.parentNode.parentNode.textContent.trim();
+    console.log("CL", e, txt);
 	switch(txt) {
-		case "Disable":
+		case "Enabled":
 		case "Swap chars":
-		case "Chars or accents":
-		case "Chars and accents":
+		case "Add accents":
 			browser.tabs.query({active: true, currentWindow: true})
 					.then(tabs=>{
+                console.log("Extension drnoparse", "switching option", txt, "to", input.checked);
 				browser.tabs.sendMessage(tabs[0].id, {
 					command: "drnoparse",
 					action: txt,
+					status: !!input.checked,
 				});
 			});
 			break;
 	}
-	console.log("DBG", "CLICK", e.target.textContent);
 }
-console.log("DBG", "LOADING", document.body);
-[].slice.call(document.querySelectorAll("button.button")).forEach(btn=>{
-	btn.addEventListener("click", optionclicked);
+console.log("Extension drnoparse", "loading");
+browser.tabs.query({active: true, currentWindow: true})
+        .then(tabs=>{
+    browser.tabs.sendMessage(tabs[0].id, {
+        command: "getdrnoparsestatus",
+    }).then(response=>{
+        const OPTIONS = response.status;
+        const buttons = [].slice.call(document.querySelectorAll(".switch input"));
+        console.log("Extension drnoparse", "current page options", OPTIONS);
+        buttons.forEach((btn,i)=>{
+            btn.checked = OPTIONS[["enabled","swap","diatrics"][i]];
+            btn.addEventListener("click", optionclicked);
+        });
+    });
 });
-console.log("DBG", "LOADED", document.body);
+

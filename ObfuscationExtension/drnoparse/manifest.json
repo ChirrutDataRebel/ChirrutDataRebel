@@ -12,9 +12,9 @@
   "content_scripts": [
     {
       "matches": [
-				"*://*.pastebin.com/*",
-				"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea"
-			],
+          "*://*.pastebin.com/*",
+          "*://*.wearedatarebels.com/*"
+      ],
       "js": ["drnoparse.js"]
     }
   ],
