@@ -11,8 +11,23 @@ function interceptNewInputs() {
     });
 }
 
+function nomodifiers(e) {
+    let modifiers = false;
+    modifiers |= e.ctrlKey;
+    modifiers |= e.altKey;
+    modifiers |= e.metaKey;
+    return !modifiers;
+}
+
+const OPTIONS = {
+    enabled: true,
+}
+
 function keydown(event, textarea) {
-    if(event && event.key && event.key.length && event.key.match(/^[\w]$/i)) {
+    if(!OPTIONS.enabled) return;
+    if(event && event.key && event.key.length 
+            && event.key.match(/^[\w]$/i)
+            && nomodifiers(event)) {
         event.preventDefault();
         const replacement = obfuscated(event.key);
         if (textarea.selectionStart || textarea.selectionStart == '0') {
@@ -211,6 +226,16 @@ function zalgoed(c) {
     zalgo[Math.floor(Math.random()*zalgo.length)]
   )).join("");
 }
+
+browser.runtime.onMessage.addListener((message) => {
+    if (message.command === "drnoparse") {
+        if(message.action == "Disable") {
+            OPTIONS.enabled = false;
+        } else {
+            OPTIONS.enabled = true;
+        }
+    }
+});
 
 document.body.style.border = "5px solid red";
 interceptNewInputs();
