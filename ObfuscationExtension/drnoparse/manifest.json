@@ -13,7 +13,15 @@
     {
       "matches": [
           "*://*.pastebin.com/*",
-          "*://*.wearedatarebels.com/*"
+          "*://*.wearedatarebels.com/*",
+          "*://*.google.com/*",
+          "*://*.amazon.com/*",
+          "*://*.amazon.fr/*",
+          "*://*.amazon.es/*",
+          "*://*.facebook.com/*",
+          "*://*.apple.com/*",
+          "*://*.twitter.com/*",
+          "*://*.instagram.com/*"
       ],
       "js": ["drnoparse.js"]
     }
