@@ -1,34 +1,18 @@
 {
-  "manifest_version": 2,
-  "name": "DR Noparse",
-  "version": "0.1",
-  "description": "Allows obfuscating user entered text",
-  "icons": {
-    "48": "icons/drnoparse48.png"
-  },
-  "permissions": [
-    "activeTab"
-  ],
-  "content_scripts": [
-    {
-      "matches": [
-          "*://*.pastebin.com/*",
-          "*://*.wearedatarebels.com/*",
-          "*://*.google.com/*",
-          "*://*.amazon.com/*",
-          "*://*.amazon.fr/*",
-          "*://*.amazon.es/*",
-          "*://*.facebook.com/*",
-          "*://*.apple.com/*",
-          "*://*.twitter.com/*",
-          "*://*.instagram.com/*"
-      ],
-      "js": ["drnoparse.js"]
-    }
-  ],
-	"browser_action": {
-		"default_icon": "icons/drnoparse48.png",
-		"default_title": "DR options",
-		"default_popup": "options.html"
-	}
+	"manifest_version": 2,
+		"name": "DR Noparse",
+		"version": "0.3",
+		"description": "Allows obfuscating user entered text",
+		"icons": {
+			"48": "icons/drnoparse48.png"
+		},
+		"permissions": [
+			"activeTab",
+			"menus"
+		],
+		"background": {
+			"scripts":[
+				"background.js"
+			]
+		}
 }

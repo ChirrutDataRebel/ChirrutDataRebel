@@ -1,140 +1,8 @@
+// vim: set ts=4 sts=4 sw=4 expandtab foldmethod=marker:
+
 (function(){
 
-
-function interceptNewInputs() {
-    const MARKER = "drnoparse-marker";
-    [].slice.call(document.querySelectorAll(`
-        textarea:not([${MARKER}]) , 
-        input[type=text]:not([${MARKER}]) , 
-        div[contenteditable=true]:not([${MARKER}])
-    `))
-    .forEach(e=>{
-        console.log("Extension drnoparse","hooked to", e);
-        e.setAttribute(MARKER, true);
-        e.addEventListener('keydown', event=>keydown(event,e));
-    });
-}
-
-function nomodifiers(e) {
-    let modifiers = false;
-    modifiers |= e.ctrlKey;
-    modifiers |= e.altKey;
-    modifiers |= e.metaKey;
-    return !modifiers;
-}
-
-const OPTIONS = {
-    enabled: false,
-    swap: true,
-    diatrics: true,
-};
-
-function keydown(event, textarea) {
-    if(!OPTIONS.enabled) return;
-    if(event && event.key && event.key.length 
-            && event.key.match(/^[\w]$/i)
-            && nomodifiers(event)) {
-        event.preventDefault();
-        const replacement = obfuscated(event.key);
-        if(textarea.isContentEditable) {
-            const s0 = saveSelection();
-            insertTextAtCursor(replacement);
-            restoreSelection(s0);
-        } else if (textarea.selectionStart || textarea.selectionStart == '0') {
-            const startPos = textarea.selectionStart;
-            const endPos = textarea.selectionEnd;
-            textarea.value = textarea.value.substring(0, startPos)
-                + replacement
-                + textarea.value.substring(endPos, textarea.value.length);
-            // TODO: position cursor after insertion
-        } else {
-            textarea.value += replacement;
-        }
-    }
-}
-
-function insertTextAtCursor(text) {
-    var sel, range;
-    if (window.getSelection) {
-        sel = window.getSelection();
-        if (sel.getRangeAt && sel.rangeCount) {
-            range = sel.getRangeAt(0);
-            range.deleteContents();
-            range.insertNode( document.createTextNode(text) );
-        }
-    } else if (document.selection && document.selection.createRange) {
-        document.selection.createRange().text = text;
-    }
-}
-
-function saveSelection() {
-    if (window.getSelection) {
-        sel = window.getSelection();
-        if (sel.getRangeAt && sel.rangeCount) {
-            return sel.getRangeAt(0);
-        }
-    } else if (document.selection && document.selection.createRange) {
-        return document.selection.createRange();
-    }
-    return null;
-}
-
-function restoreSelection(range) {
-    if (range) {
-        if (window.getSelection) {
-            sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-        } else if (document.selection && range.select) {
-            range.select();
-        }
-    }
-}
-
-function pasteTextAtCaret(text) {
-    if (window.getSelection) {
-        sel = window.getSelection();
-        if (sel.getRangeAt && sel.rangeCount) {
-            range = sel.getRangeAt(0);
-            range.insertNode(document.createTextNode(text));
-        }
-    }
-}
-
-function old_pasteHtmlAtCaret(html) {
-    var sel, range;
-    if (window.getSelection) {
-        // IE9 and non-IE
-        sel = window.getSelection();
-        if (sel.getRangeAt && sel.rangeCount) {
-            range = sel.getRangeAt(0);
-            range.deleteContents();
-
-            // Range.createContextualFragment() would be useful here but is
-            // non-standard and not supported in all browsers (IE9, for one)
-            var el = document.createElement("div");
-            el.innerHTML = html;
-            var frag = document.createDocumentFragment(), node, lastNode;
-            while ( (node = el.firstChild) ) {
-                lastNode = frag.appendChild(node);
-            }
-            range.insertNode(frag);
-            
-            // Preserve the selection
-            if (lastNode) {
-                range = range.cloneRange();
-                range.setStartAfter(lastNode);
-                range.collapse(true);
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
-        }
-    } else if (document.selection && document.selection.type != "Control") {
-        // IE < 9
-        document.selection.createRange().pasteHTML(html);
-    }
-}
-
+/* Mappings {{{ */
 const mappingconfig = (`
     Codes = 33, 451 chars = !, ǃ
     Codes = 59, 894 chars = ;, ;
@@ -269,6 +137,7 @@ const mappings = mappingconfig
         return acc;
     },{})
     ;
+/* Mappings }}} */
 
 function obfuscated(txt) {
     return (txt.match(/./g) || [])
@@ -286,6 +155,7 @@ function shuffle(m, c) {
     return c;
 }
 
+/* Zalgo consts {{{ */
 const zalgo_up = [
     '\u030d','\u030e','\u0304','\u0305', '\u033f','\u0311','\u0306','\u0310',
     '\u0352','\u0357','\u0351','\u0307', '\u0308','\u030a','\u0342','\u0343',
@@ -312,6 +182,7 @@ const zalgo = []
     .concat(zalgo_down)
     //.concat(zalgo_mid)
     ;
+/* Zalgo consts }}} */
 
 function zalgoed(c) {
   const n = Math.floor(Math.random()*4);
@@ -320,28 +191,29 @@ function zalgoed(c) {
   )).join("");
 }
 
-browser.runtime.onMessage.addListener((message,sender,sendResponse) => {
-    if (message.command === "getdrnoparsestatus") {
-        sendResponse({ status:{...OPTIONS}, });
-    } else if (message.command === "drnoparse") {
-        console.log("Extension drnoparse", "switch message", message);
-        switch(message.action) {
-            case "Enabled":
-                OPTIONS.enabled = message.status;
-                break;
-            case "Swap chars":
-                OPTIONS.swap = message.status;
-                break;
-            case "Add accents":
-                OPTIONS.diatrics = message.status;
-                break;
-        }
-        console.log("Extension drnoparse", "switched enabled", OPTIONS.enabled);
+const s = window.getSelection();
+if(s.rangeCount) {
+    const r = s.getRangeAt(0);
+    const src = r.toString();
+    const dst = obfuscated(src);
+    console.log("DRNoparse", "replacing text node", src, dst);
+    r.deleteContents();
+    r.insertNode(document.createTextNode(dst));
+} else {
+    const l = [].slice.call(document.body.querySelectorAll("*:focus"));
+    if(l.length && l[0].nodeName.toUpperCase() == "TEXTAREA") {
+        const ta = l[0];
+        const a = ta.selectionStart;
+        const b = ta.selectionEnd;
+        const before = ta.value.slice(a,b);
+        const after = obfuscated(before);
+        const newvalue = ta.value.slice(0,ta.selectionStart) + 
+            after + ta.value.slice(ta.selectionEnd,ta.length);
+        const newSelectionEnd = ta.selectionStart + after.length;
+        console.log("DRNoparse", "replacing textarea selection", before, after);
+        ta.value = newvalue;
+        ta.selectionStart = ta.selectionEnd = newSelectionEnd;             
     }
-});
-
-document.body.style.border = "5px solid red";
-interceptNewInputs();
-window.setInterval(interceptNewInputs, 2000);
+}
 
 })();
